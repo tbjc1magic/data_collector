@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+service DataCollector {
+  // Save the data.
+  rpc SaveData(SaveDataRequest) returns (SaveDataResponse) {}
+}
+
+message SaveDataRequest {
+  string data_type = 1;
+  string log_message = 2;
+}
+
+message SaveDataResponse {
+  enum State {
+    STATE_UNSPECIFIED = 0;
+    SUCCEEDED = 1;
+    FAILED = 2;
+  }
+  State state = 1;
+  string error_message = 2;
+}

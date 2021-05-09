@@ -1,0 +1,12 @@
+#!/bin/bash
+
+mkdir -p proto_generate
+
+python -m grpc_tools.protoc \
+    -I./protos \
+    --python_out=proto_generate \
+    --grpc_python_out=proto_generate \
+    protos/data_collector_protos/data_collector_service.proto
+
+PYTHONPATH="$PWD/proto_generate:$PYTHONPATH"
+python src/data_collector.py
