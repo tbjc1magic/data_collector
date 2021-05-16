@@ -1,6 +1,9 @@
+import logging
 import tarfile
 from multiprocessing import Queue, Process, Lock
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 class TaskConsumer(Process):
@@ -15,9 +18,9 @@ class TaskConsumer(Process):
         while True:
             path = Path(self._queue.get(block=True))
             with self._lock:
-                print(f"here is {self._idx} {path}")
+                logger.info(f"Work '{self._idx}' is compressing {path}.")
             with tarfile.open(path.with_suffix(".tar.gz"), "w:gz") as tar:
-                tar.add(path)
+                tar.add(path, arcname=path.name)
             path.unlink()
 
 
@@ -37,5 +40,4 @@ class TaskManager:
             p = TaskConsumer(queue=self._queue, idx=i, lock=self._lock)
             p.start()
             processes.append(p)
-        print("are we here?")
         [proc.join() for proc in processes]

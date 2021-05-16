@@ -1,7 +1,7 @@
 # from data_collectors
 import asyncio
 import json
-import zlib
+import logging
 from datetime import datetime
 from pathlib import Path
 
@@ -11,6 +11,8 @@ from grpc import aio
 from grpc_reflection.v1alpha import reflection
 
 from task_manager import TaskManager
+
+logger = logging.getLogger(__name__)
 
 
 class DataCollectorServicer(data_collector_service_pb2_grpc.DataCollectorServicer):
@@ -32,12 +34,14 @@ class DataCollectorServicer(data_collector_service_pb2_grpc.DataCollectorService
             and self.file_handlers[request.data_type]["parent_dir"] != parent_dir
         ):
             self.file_handlers[request.data_type]["handler"].close()
+            self._task_manager.add_task(self.file_handlers[request.data_type]["path"])
             self.file_handlers.pop(request.data_type)
 
         if request.data_type not in self.file_handlers:
             self.file_handlers[request.data_type] = {
                 "parent_dir": parent_dir,
-                "handler": open(path, "ba"),
+                "handler": open(path, "a"),
+                "path": path,
             }
 
         log = json.dumps(
@@ -46,9 +50,8 @@ class DataCollectorServicer(data_collector_service_pb2_grpc.DataCollectorService
                 "log": request.log_message,
             }
         )
-        compressed_log = zlib.compress(log.encode("utf8"))
-        self.file_handlers[request.data_type]["handler"].write(compressed_log)
-        self.file_handlers[request.data_type]["handler"].write("\n".encode("utf8"))
+        self.file_handlers[request.data_type]["handler"].write(log)
+        self.file_handlers[request.data_type]["handler"].write("\n")
         self.file_handlers[request.data_type]["handler"].flush()
         return data_collector_service_pb2.SaveDataResponse(
             state=data_collector_service_pb2.SaveDataResponse.State.SUCCEEDED
@@ -57,10 +60,8 @@ class DataCollectorServicer(data_collector_service_pb2_grpc.DataCollectorService
 
 async def main():
     server = aio.server()
-    print("456")
     task_manager = TaskManager()
     task_manager_thread = asyncio.to_thread(task_manager.run)
-    print("789")
     data_collector_service_pb2_grpc.add_DataCollectorServicer_to_server(
         DataCollectorServicer("/home/tbjc1magic/log", task_manager), server
     )
@@ -74,8 +75,11 @@ async def main():
     server.add_insecure_port("[::]:9999")
     await server.start()
     await asyncio.gather(server.wait_for_termination(), task_manager_thread)
-    # await server.wait_for_termination()
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        filename="data_collector.log", encoding="utf-8", level=logging.INFO
+    )
+    logging.getLogger().addHandler(logging.StreamHandler())
     asyncio.run(main())
