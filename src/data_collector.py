@@ -24,6 +24,7 @@ class DataCollectorServicer(data_collector_service_pb2_grpc.DataCollectorService
     async def SaveData(
         self, request: data_collector_service_pb2.SaveDataRequest, context
     ):
+        logger.info(f"Saving data for {request.data_type}.")
         parent_dir = datetime.utcnow().strftime("%Y_%m_%d")
         directory = Path(self._base_path, parent_dir)
         directory.mkdir(parents=True, exist_ok=True)
@@ -53,6 +54,7 @@ class DataCollectorServicer(data_collector_service_pb2_grpc.DataCollectorService
         self.file_handlers[request.data_type]["handler"].write(log)
         self.file_handlers[request.data_type]["handler"].write("\n")
         self.file_handlers[request.data_type]["handler"].flush()
+        logger.info(f"Saving data is complete for {request.data_type}.")
         return data_collector_service_pb2.SaveDataResponse(
             state=data_collector_service_pb2.SaveDataResponse.State.SUCCEEDED
         )
