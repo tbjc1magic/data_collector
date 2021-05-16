@@ -1,4 +1,4 @@
-# from data_collectors
+import argparse
 import asyncio
 import json
 import logging
@@ -60,7 +60,7 @@ class DataCollectorServicer(data_collector_service_pb2_grpc.DataCollectorService
         )
 
 
-async def main():
+async def main(port):
     server = aio.server()
     task_manager = TaskManager()
     task_manager_thread = asyncio.to_thread(task_manager.run)
@@ -74,14 +74,20 @@ async def main():
         reflection.SERVICE_NAME,
     )
     reflection.enable_server_reflection(service_names, server)
-    server.add_insecure_port("[::]:9999")
+    server.add_insecure_port(f"[::]:{port}")
     await server.start()
     await asyncio.gather(server.wait_for_termination(), task_manager_thread)
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Process some integers.")
+    parser.add_argument(
+        "--port", type=int, default=9998, help="port of the grpc server."
+    )
+    args = parser.parse_args()
+
     logging.basicConfig(
         filename="data_collector.log", encoding="utf-8", level=logging.INFO
     )
     logging.getLogger().addHandler(logging.StreamHandler())
-    asyncio.run(main())
+    asyncio.run(main(args.port))
