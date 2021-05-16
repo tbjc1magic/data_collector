@@ -1,0 +1,11 @@
+certifi==2020.12.5
+coverage==5.5
+grpc-reflection==0.0.1
+grpcio==1.37.1
+grpcio-reflection==1.37.1
+grpcio-tools==1.35.0
+pip==21.0.1
+protobuf==3.14.0
+setuptools==52.0.0.post20210125
+six==1.15.0
+wheel==0.36.2
