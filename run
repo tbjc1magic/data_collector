@@ -9,4 +9,4 @@ python -m grpc_tools.protoc \
     protos/data_collector_protos/data_collector_service.proto
 
 export PYTHONPATH="$PWD/proto_generate:$PYTHONPATH"
-python src/data_collector.py
+python src/data_collector.py $@

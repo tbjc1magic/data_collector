@@ -60,12 +60,12 @@ class DataCollectorServicer(data_collector_service_pb2_grpc.DataCollectorService
         )
 
 
-async def main(port):
+async def main(port, log_storage="/home/tbjc1magic/log"):
     server = aio.server()
     task_manager = TaskManager()
     task_manager_thread = asyncio.to_thread(task_manager.run)
     data_collector_service_pb2_grpc.add_DataCollectorServicer_to_server(
-        DataCollectorServicer("/home/tbjc1magic/log", task_manager), server
+        DataCollectorServicer(log_storage, task_manager), server
     )
     service_names = (
         data_collector_service_pb2.DESCRIPTOR.services_by_name[
@@ -84,10 +84,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--port", type=int, default=9998, help="port of the grpc server."
     )
+    parser.add_argument("--log_storage", type=str, help="data storage directory.")
     args = parser.parse_args()
 
     logging.basicConfig(
         filename="data_collector.log", encoding="utf-8", level=logging.INFO
     )
     logging.getLogger().addHandler(logging.StreamHandler())
-    asyncio.run(main(args.port))
+    asyncio.run(main(args.port, args.log_storage))
