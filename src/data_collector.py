@@ -15,7 +15,9 @@ from task_manager import TaskManager
 logger = logging.getLogger(__name__)
 
 
-class DataCollectorServicer(data_collector_service_pb2_grpc.DataCollectorServicer):
+class DataCollectorServicer(
+    data_collector_service_pb2_grpc.DataCollectorServicer
+):
     def __init__(self, base_path, task_manager: TaskManager):
         self.file_handlers = {}
         self._base_path = base_path
@@ -32,10 +34,13 @@ class DataCollectorServicer(data_collector_service_pb2_grpc.DataCollectorService
 
         if (
             request.data_type in self.file_handlers
-            and self.file_handlers[request.data_type]["parent_dir"] != parent_dir
+            and self.file_handlers[request.data_type]["parent_dir"]
+            != parent_dir
         ):
             self.file_handlers[request.data_type]["handler"].close()
-            self._task_manager.add_task(self.file_handlers[request.data_type]["path"])
+            self._task_manager.add_task(
+                self.file_handlers[request.data_type]["path"]
+            )
             self.file_handlers.pop(request.data_type)
 
         if request.data_type not in self.file_handlers:
@@ -84,7 +89,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--port", type=int, default=9998, help="port of the grpc server."
     )
-    parser.add_argument("--log_storage", type=str, help="data storage directory.")
+    parser.add_argument(
+        "--log_storage", type=str, help="data storage directory."
+    )
     args = parser.parse_args()
 
     logging.basicConfig(

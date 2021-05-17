@@ -34,7 +34,7 @@ class TaskManager:
         self._queue.put(path)
 
     def run(self):
-        ## Create a list to hold running Processor object instances...
+        # Create a list to hold running Processor object instances...
         processes = []
         for i in range(self._num_of_processes):
             p = TaskConsumer(queue=self._queue, idx=i, lock=self._lock)
